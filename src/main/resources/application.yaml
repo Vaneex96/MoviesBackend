@@ -1,0 +1,13 @@
+server:
+  port: 8080
+
+jwt:
+  secret: 4hcv7876v435nc8720ufh3nbwq0c94232h2fu03
+  lifetime: 30m
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/my_db?useSSL=false&amp
+    username: bestuser
+    password: bestuser
