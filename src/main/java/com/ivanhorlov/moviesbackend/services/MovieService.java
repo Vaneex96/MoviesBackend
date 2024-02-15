@@ -16,4 +16,6 @@ public interface MovieService {
     public List<Movie> getMoviesByGenre(int genreId, int pageNumber);
 
     public List<Movie> getMoviesByPopularity(int amount, int pageNumber);
+
+    public List<Movie> getAllFavoriteMoviesByUserId(int userId);
 }

@@ -6,48 +6,27 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Data
-public class Pagination <T> {
-
-    private int page = 1;
-
-    private int amountElements = 10;
-
-    private List<T> list;
-
-    public Pagination(int page, int amountElements) {
-        this.page = page;
-        this.amountElements = amountElements;
-    }
+@Component
+public class Pagination {
 
     public Pagination() {
     }
 
-//    public Pagination(List<T> list) {
-//        this.list = list;
-//    }
-//
-//    public Pagination(int page, List<T> list) {
-//        this.page = page;
-//        this.list = list;
-//    }
-//
-//    public Pagination(int page, int amountElements, List<T> list) {
-//        this.page = page;
-//        this.amountElements = amountElements;
-//        this.list = list;
-//    }
-
-    public List<T> listPagination(List<T> list){
-        this.list = list;
-
-        if (page == 0){
+    public <T> List<T> listPagination(List<T> list, int amountElements, int page){
+        if (page <= 0){
             return list;
         }
+
+        if(amountElements <= 0){
+            amountElements = 10;
+        }
+
 
         int fromIndex = 0;
         int toIndex = amountElements;
@@ -63,11 +42,6 @@ public class Pagination <T> {
             toIndex = list.size();
         }
 
-        System.out.println("list size: "+list.size());
-
-
-        List<T> paginatedList = list.subList(fromIndex, toIndex);
-
-        return paginatedList;
+         return list.subList(fromIndex, toIndex);
     }
 }

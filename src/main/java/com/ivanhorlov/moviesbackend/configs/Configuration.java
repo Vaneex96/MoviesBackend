@@ -1,4 +1,4 @@
-package com.ivanhorlov.moviesbackend.config;
+package com.ivanhorlov.moviesbackend.configs;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;

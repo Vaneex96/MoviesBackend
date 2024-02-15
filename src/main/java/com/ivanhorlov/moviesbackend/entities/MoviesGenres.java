@@ -8,10 +8,13 @@ import lombok.Data;
 public class MoviesGenres {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name="movie_id")
     private int movieId;
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name="genre_id")
     private int genreId;
+
 }
