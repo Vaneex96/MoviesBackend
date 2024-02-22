@@ -1,10 +1,10 @@
 package com.ivanhorlov.moviesbackend.services;
 
+import com.ivanhorlov.moviesbackend.dtos.RegistrationUserDto;
+import com.ivanhorlov.moviesbackend.entities.AdditionalUserInfo;
 import com.ivanhorlov.moviesbackend.entities.Movie;
 import com.ivanhorlov.moviesbackend.entities.User;
-import com.ivanhorlov.moviesbackend.entities.UserMovie;
-import com.ivanhorlov.moviesbackend.exception_handling.UserAlreadyExistsException;
-import com.ivanhorlov.moviesbackend.repositories.UserMovieRepository;
+import com.ivanhorlov.moviesbackend.exception_handling.NoMatchPasswordsException;
 import com.ivanhorlov.moviesbackend.repositories.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -13,9 +13,9 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -27,6 +27,8 @@ public class UserService implements UserDetailsService {
     private final RoleService roleService;
     private final MovieService movieService;
     private final UsersFavoriteMoviesService usersFavoriteMoviesService;
+    private final AdditionalUserInfoService additionalUserServiceInfo;
+    private final BCryptPasswordEncoder encoder;
 
     @Override
     @Transactional
@@ -45,13 +47,23 @@ public class UserService implements UserDetailsService {
         return userRepository.findUserByUserName(username);
     }
 
-    public void createNewUser(User user){
-        if(userRepository.findUserByUserName(user.getUserName()).isPresent()){
-            throw new UserAlreadyExistsException(String.format("User '%s' already exits", user.getUserName()));
+    public User findUserByUserName(String username){
+        Optional<User> userOptional = userRepository.findUserByUserName(username);
+        User user = null;
+        if(userOptional.isPresent()){
+            user = userOptional.get();
         }
 
-        user.setRoles(List.of(roleService.getRoleByName("ROLE_USER")));
+        return user;
     }
+
+//    public void createNewUser(User user){
+//        if(userRepository.findUserByUserName(user.getUserName()).isPresent()){
+//            throw new UserAlreadyExistsException(String.format("User '%s' already exits", user.getUserName()));
+//        }
+//
+//        user.setRoles(List.of(roleService.getRoleByName("ROLE_USER")));
+//    }
 
 
     public User getUserByUserId(int id){
@@ -78,10 +90,20 @@ public class UserService implements UserDetailsService {
         return getUserByUserId(id).getEmail();
     }
 
-//    public void addMovieToFavorite(int movieId, int userId){
-//        UserMovie userMovie = new UserMovie(userId, movieId);
-//        usersFavoriteMoviesService.addMovieToFavorite(userMovie);
-//    }
+    public User getUserByEmail(String email){
+        User user = null;
+        Optional<User> userOptional = userRepository.findUserByEmail(email);
+
+        if(userOptional.isPresent()){
+            user = userOptional.get();
+        }
+
+        return user;
+    }
+
+    public void saveUser(User user){
+        userRepository.save(user);
+    }
 
     public void addMovieToFavorite(int movieId, int userId) {
         User user = getUserByUserId(userId);
@@ -98,4 +120,91 @@ public class UserService implements UserDetailsService {
 
     }
 
+    public AdditionalUserInfo addAdditionalUserInfo(AdditionalUserInfo userInfo,int id){
+        AdditionalUserInfo additionalUserInfo = null;
+
+        try{
+            additionalUserInfo = additionalUserServiceInfo.getAdditionalUserInfo(id);
+        }catch(NoSuchElementException e){
+            log.debug(e.getMessage());
+        }
+
+        if(additionalUserInfo == null){
+            userInfo.setId(id);
+            additionalUserServiceInfo.saveInfo(userInfo);
+            System.out.println(userInfo);
+            return userInfo;
+        }
+
+        userInfo.setId(id);
+
+        if(userInfo.getFavoriteGenre() == null) userInfo.setFavoriteGenre(additionalUserInfo.getFavoriteGenre());
+
+        additionalUserServiceInfo.isGenreExist(userInfo.getFavoriteGenre());
+
+        if(userInfo.getRealName() == null) userInfo.setRealName(additionalUserInfo.getRealName());
+
+        if(userInfo.getSurname() == null) userInfo.setSurname(additionalUserInfo.getSurname());
+
+        if(userInfo.getPhoneNumber() == null) userInfo.setPhoneNumber(additionalUserInfo.getPhoneNumber());
+
+        if(userInfo.getCountry() == null) userInfo.setCountry(additionalUserInfo.getCountry());
+
+        if(userInfo.getLang() == null) userInfo.setLang(additionalUserInfo.getLang());
+
+        if(userInfo.getAboutMe() == null) userInfo.setAboutMe(additionalUserInfo.getAboutMe());
+
+
+        additionalUserServiceInfo.saveInfo(userInfo);
+
+        return userInfo;
+    }
+
+    public boolean isUserExist(String userName) {
+        Optional<User> user = findByUserName(userName);
+
+        if(user.isEmpty()){
+            return false;
+        }
+
+        return true;
+    }
+
+    public User addUser(RegistrationUserDto registrationUser){
+        if(isUserExist(registrationUser.getUsername())){
+            return null;
+        }
+
+        User user = new User();
+        String activationCode = UUID.randomUUID().toString();
+        user.setUserName(registrationUser.getUsername());
+        user.setEmail(registrationUser.getEmail());
+        user.setActivationCode(activationCode);
+        user.setRoles(List.of(roleService.getRoleByName("ROLE_USER")));
+
+
+        if(registrationUser.getPassword().equals(registrationUser.getConfirmPassword())){
+            user.setPassword(encoder.encode(registrationUser.getPassword()));
+        } else {
+            throw new NoMatchPasswordsException("Password doesn't match the confirm password");
+        }
+
+        userRepository.save(user);
+
+        return user;
+    }
+
+    public boolean isActivationCode(String code){
+        Optional<User> userOptional = userRepository.findUserByActivationCode(code);
+
+        if(userOptional.isEmpty()){
+            return false;
+        }
+
+        User user = userOptional.get();
+        user.setActivationCode(null);
+        userRepository.save(user);
+
+        return true;
+    }
 }

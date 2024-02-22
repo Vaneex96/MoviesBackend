@@ -5,94 +5,67 @@ import com.ivanhorlov.moviesbackend.entities.Movie;
 import com.ivanhorlov.moviesbackend.entities.UserMovie;
 import com.ivanhorlov.moviesbackend.exception_handling.NoSuchMovieException;
 import com.ivanhorlov.moviesbackend.pagination.Pagination;
-import com.ivanhorlov.moviesbackend.repositories.GenreRepository;
 import com.ivanhorlov.moviesbackend.repositories.MovieRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
+
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class MovieServiceImpl implements MovieService {
 
     private final MovieRepository movieRepository;
-    private final GenreRepository genreRepository;
+    private final GenreService genreService;
     private final Pagination pagination;
     private final UserFavoriteMoviesServiceImpl userFavoriteMoviesService;
 
     @Override
     public Movie getMovieById(int id) {
         Optional<Movie> optionalMovie = movieRepository.findById(id);
-        Movie movie = null;
-        if (optionalMovie.isPresent()){
-            movie = optionalMovie.get();
-        } else {
+        if(optionalMovie.isEmpty()){
             throw new NoSuchMovieException("Movie with id: " + id + " not found");
         }
-
-        return movie;
+        return optionalMovie.get();
     }
 
     @Override
     public Movie getMovieByTitle(String title) {
         Optional<Movie> optionalMovie = movieRepository.findMovieByTitle(title);
-        Movie movie = null;
-        if (optionalMovie.isPresent()){
-            movie = optionalMovie.get();
-        } else {
+        if(optionalMovie.isEmpty()){
             throw new NoSuchMovieException("Movie with title: " + title + " not found");
         }
 
-        return movie;
+        return optionalMovie.get();
     }
 
     @Override
     public List<Integer> getMoviesIdsByGenre(String genreName, int pageNumber) {
-        Optional<Genre> optionalGenre = genreRepository.findGenreByName(genreName);
-        List<Movie> movieList = new ArrayList<>();
-        if (optionalGenre.isPresent()){
-            movieList = optionalGenre.get().getMoviesList();
-        }else{
-            throw new NoSuchElementException(String.format("Genre with name = %s not found", genreName));
-        }
+        Genre genre = genreService.findGenreByName(genreName);
+        List<Movie> movieList = genre.getMoviesList();
 
-        List<Integer> moviesIdsList = new ArrayList<>();
-
-        movieList.stream().forEach(movie -> moviesIdsList.add(movie.getId()));
+        List<Integer> moviesIdsList = movieList.stream().map(Movie::getId).collect(Collectors.toList());
 
         return pagination.listPagination(moviesIdsList, 10, pageNumber);
     }
 
     @Override
     public List<Integer> getMoviesIdsByGenre(int genreId, int pageNumber) {
-        Optional<Genre> optionalGenre = genreRepository.findGenreById(genreId);
-        List<Movie> movieList = new ArrayList<>();
-        if (optionalGenre.isPresent()){
-            movieList = optionalGenre.get().getMoviesList();
-        } else {
-            throw new NoSuchElementException(String.format("Genre with id = %s not found", genreId));
-        }
+        Genre genre = genreService.findGenreById(genreId);
+        List<Movie> movieList = genre.getMoviesList();
 
-        List<Integer> moviesIdsList = new ArrayList<>();
-        movieList.forEach(movie -> moviesIdsList.add(movie.getId()));
+        List<Integer> moviesIdsList = movieList.stream().map(Movie::getId).collect(Collectors.toList());
 
         return pagination.listPagination(moviesIdsList, 10, pageNumber);
     }
 
     @Override
     public List<Movie> getMoviesByGenre(int genreId, int pageNumber) {
-        Optional<Genre> genre = genreRepository.findGenreById(genreId);
-        List<Movie> movies = new ArrayList<>();
-
-        if(genre.isPresent()){
-            movies = genre.get().getMoviesList();
-        }else{
-            throw new NoSuchElementException(String.format("Genre with id = %s not found", genreId));
-        }
+        Genre genre = genreService.findGenreById(genreId);
+        List<Movie> movies = genre.getMoviesList();
 
         return pagination.listPagination(movies, 2, pageNumber);
     }
@@ -105,12 +78,8 @@ public class MovieServiceImpl implements MovieService {
     @Override
     public List<Movie> getAllFavoriteMoviesByUserId(int userId) {
         List<UserMovie> userMovieList = userFavoriteMoviesService.getAllFavoritesMoviesByUserId(userId);
-        List<Movie> movieList = new ArrayList<>();
-
-        for(UserMovie item: userMovieList){
-            Movie movie = getMovieById(item.getMovieId());
-            movieList.add(movie);
-        }
+        List<Movie> movieList = userMovieList.stream().map(userMovie -> getMovieById(userMovie.getMovieId()))
+                .collect(Collectors.toList());
 
         return movieList;
     }

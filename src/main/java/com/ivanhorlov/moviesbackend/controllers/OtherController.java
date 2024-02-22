@@ -1,5 +1,6 @@
 package com.ivanhorlov.moviesbackend.controllers;
 
+import com.ivanhorlov.moviesbackend.services.EmailService;
 import com.ivanhorlov.moviesbackend.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
@@ -10,6 +11,7 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 
 
 @RestController
@@ -18,6 +20,7 @@ import java.io.IOException;
 public class OtherController {
 
     private final UserService userService;
+    private final EmailService emailService;
 
 
     @GetMapping("/unsecured")
@@ -30,6 +33,13 @@ public class OtherController {
         return "Secured";
     }
 
+
+    @PostMapping("/sendmailto/{to}")
+    public ResponseEntity<String> sendMail(@PathVariable String to){
+        emailService.sendMail(to, "some text");
+
+        return new ResponseEntity<>("Done", HttpStatus.OK);
+    }
 
     @GetMapping("/img/{img}")
     public ResponseEntity<byte[]> getPicture(@PathVariable String img) throws IOException {

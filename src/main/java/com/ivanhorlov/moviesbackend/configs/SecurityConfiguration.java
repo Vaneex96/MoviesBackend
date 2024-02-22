@@ -20,11 +20,12 @@ public class SecurityConfiguration {
 
     private final UserService userService;
     private final JwtRequestFilter jwtRequestFilter;
+    private final BCryptPasswordEncoder passwordEncoder;
 
-    @Bean
-    public BCryptPasswordEncoder passwordEncoder(){
-        return new BCryptPasswordEncoder();
-    }
+//    @Bean
+//    public BCryptPasswordEncoder passwordEncoder(){
+//        return new BCryptPasswordEncoder();
+//    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
@@ -33,7 +34,7 @@ public class SecurityConfiguration {
                         .csrf(csrf -> csrf.disable())
                         .authorizeHttpRequests(auth -> auth
                                 .requestMatchers( "/admin/**").hasRole("ADMIN")
-//                                .requestMatchers( "/{username}").hasRole("USER")
+                                .requestMatchers( "/id/**").hasRole("USER")
                                 .requestMatchers("/secured").hasAnyRole("ADMIN","USER")
                                 .requestMatchers("/info").authenticated()
                                 .anyRequest().permitAll())
@@ -47,7 +48,7 @@ public class SecurityConfiguration {
     @Bean
     public DaoAuthenticationProvider daoAuthenticationProvider(){
         DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
-        daoAuthenticationProvider.setPasswordEncoder(passwordEncoder());
+        daoAuthenticationProvider.setPasswordEncoder(passwordEncoder);
         daoAuthenticationProvider.setUserDetailsService(userService);
 
         return daoAuthenticationProvider;
