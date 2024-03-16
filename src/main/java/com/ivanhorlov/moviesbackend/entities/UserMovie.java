@@ -23,4 +23,12 @@ public class UserMovie {
         this.userId = userId;
         this.movieId = movieId;
     }
+
+    @Override
+    public String toString() {
+        return "UserMovie{" +
+                "userId=" + userId +
+                ", movieId=" + movieId +
+                '}';
+    }
 }

@@ -32,7 +32,7 @@ public class Movie {
     private String overview;
 
     @Column(name="popularity")
-    private String popularity;
+    private double popularity;
 
     @Column(name="poster_path")
     private String poster_path;
@@ -42,6 +42,15 @@ public class Movie {
 
     @Column(name="title")
     private String title;
+
+    @Column(name="video")
+    private String video;
+
+    @Column(name="trailer")
+    private String trailer;
+
+    @Column(name="vote_count")
+    private int voteCount;
 
     @OneToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
     @JoinTable(

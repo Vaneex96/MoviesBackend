@@ -6,29 +6,46 @@ import com.ivanhorlov.moviesbackend.entities.Movie;
 import com.ivanhorlov.moviesbackend.entities.User;
 import com.ivanhorlov.moviesbackend.exception_handling.NoMatchPasswordsException;
 import com.ivanhorlov.moviesbackend.repositories.UserRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
+import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@EnableScheduling
 public class UserService implements UserDetailsService {
+
+    @Value("${upload.path}")
+    private String uploadPath;
+
+    @Value("${user-with-activation-code.lifetime}")
+    private Duration userWithoutActivationLifetime;
+
     private final UserRepository userRepository;
     private final RoleService roleService;
     private final MovieService movieService;
     private final UsersFavoriteMoviesService usersFavoriteMoviesService;
     private final AdditionalUserInfoService additionalUserServiceInfo;
     private final BCryptPasswordEncoder encoder;
+    private final EntityManager entityManager;
 
     @Override
     @Transactional
@@ -108,16 +125,20 @@ public class UserService implements UserDetailsService {
     public void addMovieToFavorite(int movieId, int userId) {
         User user = getUserByUserId(userId);
         Movie movie = movieService.getMovieById(movieId);
-        Collection<Movie> movieCollection = user.getMovies();
+        List<Movie> movieCollection =(List<Movie>) user.getMovies();
 
         if(movieCollection.contains(movie)){
-            throw new NoSuchElementException("This movie already exits in favorite");
+//            throw new NoSuchElementException("This movie already exits in favorite");
+
+            boolean removed = movieCollection.remove(movie);
+
+            System.out.println("Removing " +  removed);
+        }else{
+            movieCollection.add(movie);
         }
 
-        movieCollection.add(movie);
         user.setMovies(movieCollection);
         userRepository.save(user);
-
     }
 
     public AdditionalUserInfo addAdditionalUserInfo(AdditionalUserInfo userInfo,int id){
@@ -194,6 +215,13 @@ public class UserService implements UserDetailsService {
         return user;
     }
 
+    @Transactional
+    public void deleteUserWithoutConfirmEmail(){
+        Query query = entityManager.createQuery("delete from User where activationCode != 'NULL'");
+        entityManager.joinTransaction();
+        query.executeUpdate();
+    }
+
     public boolean isActivationCode(String code){
         Optional<User> userOptional = userRepository.findUserByActivationCode(code);
 
@@ -207,4 +235,77 @@ public class UserService implements UserDetailsService {
 
         return true;
     }
+
+    public String saveAvatar(MultipartFile file, int id){
+        if(file.isEmpty()){
+            return null;
+        }
+
+        File uploadDir = new File(uploadPath);
+        if(!uploadDir.exists()){
+            uploadDir.mkdir();
+        }
+
+        String uuid = UUID.randomUUID().toString();
+        String resultName = uuid + "." + file.getOriginalFilename();
+
+        try {
+            file.transferTo(new File(uploadPath + "\\" + resultName));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        AdditionalUserInfo additionalUserInfo = additionalUserServiceInfo.getAdditionalUserInfo(id);
+        additionalUserInfo.setAvatarPath(resultName);
+        additionalUserServiceInfo.saveInfo(additionalUserInfo);
+
+
+        return resultName;
+
+    }
+
+    public boolean isEmailExist(String email) {
+        Optional<User> user = userRepository.findUserByEmail(email);
+        if(user.isPresent()){
+            return true;
+        }
+
+        return false;
+    }
+
+    public Boolean isMovieInFavorite(int id, int movieId) {
+        User user = userRepository.findUserById(id).get();
+        List<Movie> movieList = user.getMovies().stream().filter(movie -> movie.getId() == movieId).toList();
+
+        return !movieList.isEmpty();
+    }
 }
+
+
+
+
+//    public void deleteUserWithoutConfirmEmail(User user){
+//        Timer timer = new Timer();
+//
+//
+//        TimerTask timerTask2 = new TimerTask() {
+//
+//            @Override
+//            public void run() {
+//
+//                String code = getUserByUserId(user.getId()).getActivationCode();
+//
+//                if(code != null){
+//                    System.out.println(user.getUserName() + ": " + user.getActivationCode());
+//
+//                    userRepository.delete(user);
+//                    System.out.println("done!");
+//                }
+//
+//                timer.purge();
+//            }
+//        };
+//
+//        timer.schedule(timerTask2, userWithoutActivationLifetime.toMillis());
+////        System.out.println("Deleted")
+//    }

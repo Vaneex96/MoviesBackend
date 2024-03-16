@@ -3,9 +3,34 @@ server:
 
 jwt:
   secret: 4hcv7876v435nc8720ufh3nbwq0c94232h2fu03
-  lifetime: 30m
+  lifetime: 1440m
+
+user-with-activation-code:
+  lifetime: 20m
+
+upload:
+  path: "C:\\Users\\igorl\\IdeaProjects\\moviesbackend\\users_avatars"
+
+server-address:
+  url: http://localhost:8080
+
+client-address:
+  url: http://localhost:3000
+
+
+
+#  spring.http.multipart.max-file-size=10MB
+#  spring.http.multipart.max-request-size=11MB
+
 
 spring:
+
+  servlet:
+    multipart:
+      max-request-size: 500MB
+      max-file-size: 500MB
+      enabled: true
+
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/my_db?useSSL=false&amp
@@ -29,4 +54,14 @@ spring:
     sender:
       email: movies-rezka@gmail.com
       text: no-reply
+  web:
+    resources:
+      static-locations: file:\C:\Users\igorl\IdeaProjects\moviesbackend\users_avatars
+  mvc:
+    static-path-pattern: /image/**
+
+
+
+
+
 

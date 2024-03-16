@@ -3,10 +3,11 @@ package com.ivanhorlov.moviesbackend.services;
 import com.ivanhorlov.moviesbackend.entities.Genre;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import java.util.List;
 
 @Service
 public interface GenreService {
-    public Genre findGenreByName(String name);
-    public Genre findGenreById(int id);
+    Genre getGenreByName(String name);
+    Genre getGenreById(int id);
+    List<Genre> getAllGenres();
 }

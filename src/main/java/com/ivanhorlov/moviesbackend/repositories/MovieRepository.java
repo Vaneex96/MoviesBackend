@@ -8,5 +8,5 @@ import java.util.Optional;
 
 @Repository
 public interface MovieRepository extends CrudRepository<Movie, Integer> {
-    public Optional<Movie> findMovieByTitle(String title);
+    Optional<Movie> findMovieByTitle(String title);
 }

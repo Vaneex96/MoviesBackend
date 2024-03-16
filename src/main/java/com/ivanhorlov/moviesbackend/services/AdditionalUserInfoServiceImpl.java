@@ -45,12 +45,12 @@ public class AdditionalUserInfoServiceImpl implements AdditionalUserInfoService 
 
     @Override
     public Boolean checkGenreExist(String name) {
-        return genreService.findGenreByName(name) == null;
+        return genreService.getGenreByName(name) == null;
     }
 
     @Override
     public void isGenreExist(String name) {
-        if(genreService.findGenreByName(name) == null){
+        if(genreService.getGenreByName(name) == null){
             throw new NoSuchElementException("Genre with name: s% doesn't exists");
         }
     }

@@ -1,6 +1,7 @@
 package com.ivanhorlov.moviesbackend.repositories;
 
 import com.ivanhorlov.moviesbackend.entities.Genre;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.repository.CrudRepository;
 
 import java.util.Optional;

@@ -4,7 +4,9 @@ import com.ivanhorlov.moviesbackend.dtos.JwtRequest;
 import com.ivanhorlov.moviesbackend.dtos.RegistrationUserDto;
 import com.ivanhorlov.moviesbackend.dtos.ResetPasswordDto;
 import com.ivanhorlov.moviesbackend.entities.User;
+import com.ivanhorlov.moviesbackend.repositories.UserRepository;
 import com.ivanhorlov.moviesbackend.utils.JwtTokenUtils;
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -12,6 +14,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.io.FileNotFoundException;
 
 
 @Service
@@ -22,6 +26,7 @@ public class AuthServiceImpl implements AuthService{
     private final EmailService emailService;
     private final AuthenticationManager authenticationManager;
     private final BCryptPasswordEncoder encoder;
+    private final UserRepository userRepository;
 
     @Override
     public String createAuthToken(JwtRequest authRequest) {
@@ -40,10 +45,13 @@ public class AuthServiceImpl implements AuthService{
     }
 
     @Override
-    public boolean userRegistration(RegistrationUserDto registrationUserDto) {
+    public boolean userRegistration(RegistrationUserDto registrationUserDto) throws MessagingException, FileNotFoundException, InterruptedException {
         if(userService.addUser(registrationUserDto) != null){
             String activationCode = userService.findUserByUserName(registrationUserDto.getUsername()).getActivationCode();
-            emailService.sendActivationCode(registrationUserDto, activationCode);
+            Boolean isActivationCodeSent =  emailService.sendActivationCode(registrationUserDto, activationCode);
+            if(!isActivationCodeSent){
+                return false;
+            }
             return true;
         }
 

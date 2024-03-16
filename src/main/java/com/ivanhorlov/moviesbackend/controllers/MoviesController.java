@@ -1,8 +1,15 @@
 package com.ivanhorlov.moviesbackend.controllers;
 
+import com.ivanhorlov.moviesbackend.dtos.MovieListResponse;
+import com.ivanhorlov.moviesbackend.dtos.RequestGenresListDto;
+import com.ivanhorlov.moviesbackend.entities.Genre;
 import com.ivanhorlov.moviesbackend.entities.Movie;
+import com.ivanhorlov.moviesbackend.pagination.SortingTypes;
+import com.ivanhorlov.moviesbackend.services.GenreService;
 import com.ivanhorlov.moviesbackend.services.MovieService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,6 +21,7 @@ import java.util.List;
 public class MoviesController {
 
     private final MovieService movieService;
+    private final GenreService genreService;
 
 
     @GetMapping("/movie/id/{id}")
@@ -36,9 +44,22 @@ public class MoviesController {
         return movieService.getMoviesIdsByGenre(id, page);
     }
 
-    @GetMapping("/genreid/{id}/page/{page}")
-    public List<Movie> getMoviesByGenreId(@PathVariable int id, @PathVariable int page){
-        return movieService.getMoviesByGenre(id, page);
+    @PostMapping("/by_genres_ids/page/{page}")
+    public MovieListResponse getMoviesByGenreId(@RequestBody RequestGenresListDto genres, @PathVariable int page){
+        return movieService.getMoviesByGenre(genres,page,genres.getSortingType());
+    }
+
+    @GetMapping("/all_genres")
+    public ResponseEntity<List<Genre>> getAllMoviesGenres(){
+        return new ResponseEntity<>(genreService.getAllGenres(), HttpStatus.OK);
+    }
+
+    @GetMapping("/popular_movies/page/{page}/pagination/{pagination}")
+    public ResponseEntity<MovieListResponse> getPopularMovies(@PathVariable int page, @PathVariable int pagination){
+
+        MovieListResponse response = movieService.getMoviesByPopularity(pagination, page);
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
 }

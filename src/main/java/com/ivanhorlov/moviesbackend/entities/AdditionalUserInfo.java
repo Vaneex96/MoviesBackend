@@ -37,6 +37,9 @@ public class AdditionalUserInfo {
     @Column(name="some_info")
     private String aboutMe;
 
+    @Column(name="user_avatar")
+    private String avatarPath;
+
     @Override
     public String toString() {
         return "AdditionalUserInfo{" +

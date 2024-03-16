@@ -1,8 +1,10 @@
 package com.ivanhorlov.moviesbackend.controllers;
 
 import com.ivanhorlov.moviesbackend.services.EmailService;
+import com.ivanhorlov.moviesbackend.services.StorageService;
 import com.ivanhorlov.moviesbackend.services.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,7 +13,6 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 
 
 @RestController
@@ -21,6 +22,8 @@ public class OtherController {
 
     private final UserService userService;
     private final EmailService emailService;
+    private final StorageService storageService;
+
 
 
     @GetMapping("/unsecured")
@@ -56,4 +59,26 @@ public class OtherController {
 
     }
 
+    @GetMapping("/photos/{filename:.+}")
+    @ResponseBody
+    public ResponseEntity<Resource> serveFile(@PathVariable String filename) {
+
+        Resource file = storageService.loadAsResource(filename);
+
+        if (file == null)
+            return ResponseEntity.notFound().build();
+
+//        return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION,
+//                "attachment; filename=\"" + file.getFilename() + "\"").body(file);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType("video/mp4"));
+//        headers.setCacheControl(CacheControl.noCache().getHeaderValue());
+
+
+        return new ResponseEntity<>(file, headers, HttpStatus.OK);
+    }
+
 }
+
+

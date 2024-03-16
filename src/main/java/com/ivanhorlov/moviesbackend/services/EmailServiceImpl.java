@@ -3,15 +3,24 @@ package com.ivanhorlov.moviesbackend.services;
 import com.ivanhorlov.moviesbackend.dtos.RegistrationUserDto;
 import com.ivanhorlov.moviesbackend.dtos.ResetPasswordDto;
 import com.ivanhorlov.moviesbackend.entities.User;
+import freemarker.template.Configuration;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.beans.Encoder;
-import java.util.NoSuchElementException;
+import java.io.FileNotFoundException;
+import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -21,6 +30,13 @@ public class EmailServiceImpl implements EmailService{
     private final JavaMailSender javaMailSender;
     private final BCryptPasswordEncoder encoder;
     private final UserService userService;
+    private final Configuration configuration;
+//    private final SpringTemplateEngine templateEngine;
+    @Value("${client-address.url}")
+    private String clientAddress;
+
+    @Value("${server-address.url}")
+    private String serverAddress;
 
     @Value("${spring.mail.sender.email}")
     private String senderEmail;
@@ -39,22 +55,45 @@ public class EmailServiceImpl implements EmailService{
 
 
     @Override
-    public void sendActivationCode(RegistrationUserDto registrationUserDto, String activationCode) {
-        SimpleMailMessage message = new SimpleMailMessage();
+    public boolean sendActivationCode(RegistrationUserDto registrationUserDto, String activationCode) throws FileNotFoundException, MessagingException {
+//        String text = String.format("Hello, %s \n" +
+//                                        "Welcome to Movies-rezka. Please visit the link to activate your account: " +
+//                "http://localhost:8080/account_activation/%s",registrationUserDto.getUsername(), activationCode);
+//        message.setText(text);
+//
+//        javaMailSender.send(message);
 
-        message.setFrom(senderEmail);
-        message.setTo(registrationUserDto.getEmail());
-        message.setSubject("Text message");
+        MimeMessage message = javaMailSender.createMimeMessage();
+        MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(message,
+                MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED,
+                StandardCharsets.UTF_8.name());
+//        Context context = new Context();
+//        context.setVariables(email.getContext());
+//        String emailContent = templateEngine.process(email.getTemplateLocation(), context);
 
-        String text = String.format("Hello, %s \n" +
-                                        "Welcome to Movies-rezka. Please visit the link to activate your account: " +
-                "http://localhost:8080/account_activation/%s",registrationUserDto.getUsername(), activationCode);
-
-        message.setText(text);
+        mimeMessageHelper.setTo(registrationUserDto.getEmail());
+        mimeMessageHelper.setSubject("Confirm page");
+        mimeMessageHelper.setFrom(senderEmail);
+        mimeMessageHelper.setText(getActivationEmailContent(registrationUserDto.getUsername(), String.format("%s/account_activation/%s",clientAddress, activationCode), String.format("%s/account_activation/%s",serverAddress, activationCode)), true);
 
         javaMailSender.send(message);
+
+        return true;
     }
 
+
+    @SneakyThrows
+    private String getActivationEmailContent(String name, String activateLink, String cancelLink) {
+        StringWriter stringWriter = new StringWriter();
+        Map<String, Object> model = new HashMap<>();
+        model.put("name", name);
+        model.put("activate_link", activateLink);
+        model.put("cancelLink", cancelLink);
+        configuration.getTemplate("confirmMail.html")
+                .process(model, stringWriter);
+        return stringWriter.getBuffer()
+                .toString();
+    }
 
     @Override
     public boolean sendEmailToResetPassword(ResetPasswordDto resetPasswordDto){
