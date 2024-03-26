@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      body {
+        display: flex;
+        justify-content: center;
+      }
+
+      .container {
+        width: 1000px;
+      }
+
+      .newsletter {
+        background: url("https://n1s2.hsmedia.ru/2f/d8/85/2fd885afc34547fc637242c7ba4e166a/3700x2313_0xac120003_4496728431672570628.jpeg")
+          center/cover no-repeat;
+      }
+      .newsletter__mask {
+        /* display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column; */
+        padding: 100px 100px 0 100px;
+        height: 500px;
+        background-color: rgb(0, 0, 0, 0.5);
+      }
+      .newsletter__label {
+        text-align: center;
+        font-family: "Roboto Slab", serif;
+        font-size: 50px;
+        font-weight: 500;
+        color: white;
+      }
+      .newsletter__descr {
+        margin-top: 20px;
+        text-align: center;
+        color: white;
+        font-size: 25px;
+      }
+
+      .newsletter__form {
+        width: 700px;
+        margin-top: 20px;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+      }
+
+      .input {
+        display: block;
+        width: 500px;
+        height: 60px;
+        padding: 12px 18px;
+        font-size: 16px;
+        font-weight: 400;
+        line-height: 34px;
+        background-color: rgba(246, 246, 246, 0.8);
+        border: none;
+        border-radius: 6px;
+        -webkit-appearance: none;
+        transition: 0.3s ease-in-out;
+        outline: none;
+      }
+
+      .btn {
+        margin-right: 20px;
+        margin-bottom: 5px;
+        width: 160px;
+        height: 60px;
+        border-radius: 10px;
+        border-width: 2px;
+        background-color: #d81a24;
+        color: white;
+        border-color: #d81a24;
+        font-family: "Roboto Slab", serif;
+        font-size: 20px;
+        font-weight: 600;
+        transition: all 0.5s;
+      }
+
+      .buttons {
+        margin-left: 240px;
+        margin-top: 20px;
+        width: 400px;
+        /* display: flex;
+        justify-content: space-between; */
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <section class="newsletter">
+        <div class="newsletter__mask">
+          <div class="newsletter__label">
+            Hello, ${name}! Welcome to Movies-rezka
+          </div>
+          <div class="newsletter__descr">
+            Please click the "Confirm" button to activate your account.<br />
+            If you didn't create an account click "Cancel"
+          </div>
+          <div class="buttons">
+            <a href="${activate_link}">
+              <button class="btn">Confirm</button>
+            </a>
+            <button class="btn">Cancel</button>
+          </div>
+        </div>
+      </section>
+    </div>
+  </body>
+</html>

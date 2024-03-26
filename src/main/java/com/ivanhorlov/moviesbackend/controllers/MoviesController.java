@@ -46,7 +46,14 @@ public class MoviesController {
 
     @PostMapping("/by_genres_ids/page/{page}")
     public MovieListResponse getMoviesByGenreId(@RequestBody RequestGenresListDto genres, @PathVariable int page){
-        return movieService.getMoviesByGenre(genres,page,genres.getSortingType());
+        return movieService.getMoviesByGenre(genres, page, genres.getSortingType(), 12);
+    }
+
+    @GetMapping("/search_by_title/{title}/page/{page}/paginate_by/{paginateBy}/sort_by/{sort_by}")
+    public ResponseEntity<MovieListResponse> getMoviesByTitle(@PathVariable String title, @PathVariable int page, @PathVariable int paginateBy, @PathVariable SortingTypes sort_by){
+        MovieListResponse data = movieService.getMoviesByTitle(title, page, paginateBy,sort_by);
+
+        return new ResponseEntity<>(data, HttpStatus.OK);
     }
 
     @GetMapping("/all_genres")

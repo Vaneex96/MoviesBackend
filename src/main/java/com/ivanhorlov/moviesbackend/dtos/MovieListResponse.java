@@ -11,6 +11,6 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class MovieListResponse {
-    private int total_pages;
+    private long total_pages;
     private List<Movie> movie_list;
 }

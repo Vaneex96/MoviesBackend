@@ -11,11 +11,13 @@ import com.ivanhorlov.moviesbackend.pagination.SortingTypes;
 import com.ivanhorlov.moviesbackend.repositories.MovieRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -69,42 +71,108 @@ public class MovieServiceImpl implements MovieService {
     }
 
     @Override
-    public MovieListResponse getMoviesByGenre(RequestGenresListDto genres, int pageNumber, SortingTypes sortingType) {
-//        Genre genre = genreService.getGenreById(genreId);
-//        List<Movie> movies = (List<Movie>) genre.getMoviesList();
+    @Transactional
+    public MovieListResponse getMoviesByTitle(String title, int pageNumber, int paginateBy, SortingTypes sortingType) {
 
-        Query query = entityManager.createQuery("SELECT movie FROM Movie movie " +
-                " INNER JOIN " +
-                        " MoviesGenres movieGenres " +
-                        "ON movie.id= movieGenres.movieId" +
-                " WHERE movieGenres.genreId IN (:genres) GROUP BY movie.id HAVING COUNT(movie.id) = :genresCount");
+        System.out.println(title);
 
+        List<Movie> movieList =  new ArrayList<>();
 
-//        Query query = entityManager.createQuery("SELECT movieId FROM MoviesGenres " +
-//                "WHERE genreId IN (:genres) GROUP BY movieId HAVING COUNT(movieId) = 2");
-
-        query.setParameter("genres", genres.getGenresIds());
-        query.setParameter("genresCount", genres.getGenresIds().size());
-
-        List<Movie> movies = new ArrayList<>();
-
-        switch (sortingType) {
-            case popularity_desc -> movies = pagination.sortByPopularity(query.getResultList(), sortingType);
-            case popularity_asc -> movies = pagination.sortByPopularity(query.getResultList(), sortingType);
-            case release_date_desc -> movies = pagination.sortByReleaseDate(query.getResultList(), sortingType);
-            case release_date_asc -> movies = pagination.sortByReleaseDate(query.getResultList(), sortingType);
-            case rating_desc -> movies = pagination.sortByRating(query.getResultList(), sortingType);
-            case rating_asc -> movies = pagination.sortByRating(query.getResultList(), sortingType);
-
-            default -> {
-                movies = pagination.sortByPopularity(query.getResultList(), sortingType);
-            }
+        while (movieList.size() == 0 && title.length() > 2){
+            movieList = getMoviesByTitleQuery("'%" + title + "%'", pageNumber, paginateBy, sortingType);
+            if(movieList.size() == 0) title = title.substring(0, title.length() - 1);
         }
 
+//        System.out.println("title after: " + title);
+//        Query queryTotalPages = entityManager.createQuery("SELECT COUNT(*) FROM Movie movie WHERE movie.title LIKE :title ");
+//        queryTotalPages.setParameter("title", "'%" + title + "%'");
+//
+//        System.out.println("resultList: " + queryTotalPages.getResultList());
+//
+//        long totalPages = (long) queryTotalPages.getResultList().get(0);
+
+        long totalPages = getMoviesByTitleQuery("'%" + title + "%'", 0, 0, null).size()/paginateBy;
 
         MovieListResponse response = new MovieListResponse();
-        response.setMovie_list(pagination.listPagination(movies, 12, pageNumber));
-        response.setTotal_pages(movies.size());
+        response.setMovie_list(movieList);
+        response.setTotal_pages(totalPages);
+
+        System.out.println("totalPages " + totalPages);
+
+        return response;
+    }
+
+    @Override
+    @Transactional
+    public List<Movie> getMoviesByTitleQuery(String title, int pageNumber, int paginateBy, SortingTypes sortingType) {
+
+        System.out.println(sortingType);
+
+        if(sortingType == null) sortingType = SortingTypes.popularity_desc;
+        if(paginateBy == 0) paginateBy = 100;
+        if(pageNumber == 0) pageNumber = 1;
+
+        String orderBy = sortingType.toString().replaceFirst("_desc", " desc").replaceFirst("_asc", " asc");
+
+        Query query = entityManager.createQuery(String.format("SELECT movie FROM Movie movie " +
+                        "WHERE movie.title LIKE %s " +
+                        "ORDER BY movie.%s " +
+                        "LIMIT %s OFFSET %s ", title, orderBy, paginateBy, (pageNumber - 1) * paginateBy)
+                );
+
+        return query.getResultList();
+    }
+
+
+    @Override
+    @Transactional
+    public MovieListResponse getMoviesByGenre(RequestGenresListDto genres, int pageNumber, SortingTypes sortingType,int paginateBy) {
+
+        String orderBy = sortingType.toString().replaceFirst("_desc", " desc").replaceFirst("_asc", " asc");
+        String genresIds = genres.getGenresIds().toString().replace("[", "(").replace("]", ")");
+
+        String hqlTemplate;
+        Query queryTotalPages;
+        long totalPages = 0;
+
+        if(genres.getGenresIds().size() == 0){
+            hqlTemplate = String.format("SELECT movie FROM Movie movie " +
+                    "ORDER BY movie.%s " +
+                    "LIMIT %s OFFSET %s ", orderBy, paginateBy, (pageNumber - 1) * paginateBy);
+
+            queryTotalPages = entityManager.createQuery("SELECT COUNT(*) FROM Movie movie ");
+
+            totalPages = queryTotalPages.getResultList().size();
+
+        } else {
+            hqlTemplate = String.format("SELECT movie FROM Movie movie INNER JOIN MoviesGenres movieGenres " +
+                    "ON movie.id= movieGenres.movieId " +
+                    "WHERE movieGenres.genreId IN %s " +
+                    "GROUP BY movie.id " +
+                    "HAVING COUNT(movie.id) = %s " +
+                    "ORDER BY movie.%s " +
+                    "LIMIT %s OFFSET %s ", genresIds, genres.getGenresIds().size(), orderBy, paginateBy, (pageNumber - 1) * paginateBy);
+
+            queryTotalPages = entityManager.createQuery("SELECT COUNT(*) FROM Movie movie " +
+                    " INNER JOIN MoviesGenres movieGenres " +
+                    "ON movie.id= movieGenres.movieId " +
+                    "WHERE movieGenres.genreId IN (:genres) " +
+                    "GROUP BY movie.id " +
+                    "HAVING COUNT(movie.id) = :genresCount "
+            );
+
+            queryTotalPages.setParameter("genres", genres.getGenresIds());
+            queryTotalPages.setParameter("genresCount", genres.getGenresIds().size());
+
+            totalPages = (long) queryTotalPages.getResultList().get(0);
+        }
+
+        Query queryMovies = entityManager.createQuery(hqlTemplate);
+        List<Movie> movies = queryMovies.getResultList();
+
+        MovieListResponse response = new MovieListResponse();
+        response.setMovie_list(movies);
+        response.setTotal_pages(totalPages);
 
         return response;
     }

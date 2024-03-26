@@ -41,39 +41,83 @@ public class PaginationAndSorting {
          return list.subList(fromIndex, toIndex);
     }
 
-    public List<Movie> sortByPopularity(List<Movie> list, SortingTypes sortingType){
-        if(sortingType.equals(SortingTypes.popularity_desc)){
-            return list.stream().sorted((movie1, movie2) -> (int)(movie2.getPopularity() - movie1.getPopularity())).toList();
-        }
+    public List<Movie> sortBy(List<Movie> list, SortingTypes sortingType){
 
-        if(sortingType.equals(SortingTypes.popularity_asc)){
-            return list.stream().sorted((movie1, movie2) -> (int)(movie1.getPopularity() - movie2.getPopularity())).toList();
-        }
+        switch (sortingType) {
+            case popularity_desc -> {
+                return list.stream().sorted((movie1, movie2) -> (int) (movie2.getPopularity() - movie1.getPopularity())).toList();
+            }
+            case popularity_asc -> {
+                return list.stream().sorted((movie1, movie2) -> (int) (movie1.getPopularity() - movie2.getPopularity())).toList();
+            }
+            case release_date_desc -> {
+                return list.stream().sorted((movie1, movie2) -> movie2.getRelease_date().compareTo(movie1.getRelease_date())).toList();
+            }
+            case release_date_asc -> {
+                return list.stream().sorted((movie1, movie2) -> movie1.getRelease_date().compareTo(movie2.getRelease_date())).toList();
+            }
+            case rating_desc -> {
+                return list.stream().sorted((movie1, movie2) -> movie2.getVoteCount() - movie1.getVoteCount()).toList();
+            }
+            case rating_asc -> {
+                return list.stream().sorted(Comparator.comparingInt(Movie::getVoteCount)).toList();
+            }
 
-        return new ArrayList<>();
+            default -> {
+                return new ArrayList<>();
+            }
+        }
     }
 
-    public List<Movie> sortByRating(List<Movie> list, SortingTypes sortingType){
-        if(sortingType.equals(SortingTypes.rating_desc)){
-            return list.stream().sorted((movie1, movie2) -> movie2.getVoteCount() - movie1.getVoteCount()).toList();
-        }
-
-        if(sortingType.equals(SortingTypes.rating_asc)){
-            return list.stream().sorted(Comparator.comparingInt(Movie::getVoteCount)).toList();
-        }
-
-        return new ArrayList<>();
-    }
-
-    public List<Movie> sortByReleaseDate(List<Movie> list, SortingTypes sortingType){
-        if(sortingType.equals(SortingTypes.release_date_desc)){
-            return list.stream().sorted((movie1, movie2) -> movie2.getRelease_date().compareTo(movie1.getRelease_date())).toList();
-        }
-
-        if(sortingType.equals(SortingTypes.release_date_asc)){
-            return list.stream().sorted((movie1, movie2) -> movie1.getRelease_date().compareTo(movie2.getRelease_date())).toList();
-        }
-
-        return new ArrayList<>();
-    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//
+//    public List<Movie> sortByPopularity(List<Movie> list, SortingTypes sortingType){
+//        if(sortingType.equals(SortingTypes.popularity_desc)){
+//            return list.stream().sorted((movie1, movie2) -> (int)(movie2.getPopularity() - movie1.getPopularity())).toList();
+//        }
+//
+//        if(sortingType.equals(SortingTypes.popularity_asc)){
+//            return list.stream().sorted((movie1, movie2) -> (int)(movie1.getPopularity() - movie2.getPopularity())).toList();
+//        }
+//
+//        return new ArrayList<>();
+//    }
+//
+//    public List<Movie> sortByRating(List<Movie> list, SortingTypes sortingType){
+//        if(sortingType.equals(SortingTypes.rating_desc)){
+//            return list.stream().sorted((movie1, movie2) -> movie2.getVoteCount() - movie1.getVoteCount()).toList();
+//        }
+//
+//        if(sortingType.equals(SortingTypes.rating_asc)){
+//            return list.stream().sorted(Comparator.comparingInt(Movie::getVoteCount)).toList();
+//        }
+//
+//        return new ArrayList<>();
+//    }
+//
+//    public List<Movie> sortByReleaseDate(List<Movie> list, SortingTypes sortingType){
+//        if(sortingType.equals(SortingTypes.release_date_desc)){
+//            return list.stream().sorted((movie1, movie2) -> movie2.getRelease_date().compareTo(movie1.getRelease_date())).toList();
+//        }
+//
+//        if(sortingType.equals(SortingTypes.release_date_asc)){
+//            return list.stream().sorted((movie1, movie2) -> movie1.getRelease_date().compareTo(movie2.getRelease_date())).toList();
+//        }
+//
+//        return new ArrayList<>();
+//    }

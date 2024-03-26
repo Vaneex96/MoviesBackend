@@ -9,17 +9,21 @@ import java.util.List;
 
 public interface MovieService {
 
-    public Movie getMovieById(int id);
+    Movie getMovieById(int id);
 
-    public Movie getMovieByTitle(String title);
+    Movie getMovieByTitle(String title);
 
-    public List<Integer> getMoviesIdsByGenre(String genreName, int pageNumber);
+    List<Integer> getMoviesIdsByGenre(String genreName, int pageNumber);
 
-    public List<Integer> getMoviesIdsByGenre(int genreId, int pageNumber);
+    List<Integer> getMoviesIdsByGenre(int genreId, int pageNumber);
 
-    MovieListResponse getMoviesByGenre(RequestGenresListDto genres, int pageNumber, SortingTypes sortingType);
+    MovieListResponse getMoviesByTitle(String title, int pageNumber, int paginateBy, SortingTypes sortingType);
 
-    public MovieListResponse getMoviesByPopularity(int amount, int pageNumber);
+    List<Movie> getMoviesByTitleQuery(String title, int pageNumber, int paginateBy, SortingTypes sortingTypes);
 
-    public List<Movie> getAllFavoriteMoviesByUserId(int userId);
+    MovieListResponse getMoviesByGenre(RequestGenresListDto genres, int pageNumber, SortingTypes sortingType,int paginateBy);
+
+    MovieListResponse getMoviesByPopularity(int amount, int pageNumber);
+
+    List<Movie> getAllFavoriteMoviesByUserId(int userId);
 }

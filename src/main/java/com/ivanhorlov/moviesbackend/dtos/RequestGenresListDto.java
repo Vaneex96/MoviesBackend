@@ -13,4 +13,5 @@ import java.util.List;
 public class RequestGenresListDto {
     private List<Integer> genresIds;
     private SortingTypes sortingType;
+
 }

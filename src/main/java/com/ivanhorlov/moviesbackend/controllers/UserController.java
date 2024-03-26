@@ -101,13 +101,12 @@ public class UserController {
     }
 
 
-//    @GetMapping("/{id}/favorites_movies")
-
     @RequestMapping(value="/{id}/favorites_movies", method = RequestMethod.GET, produces = "application/json")
-    public ResponseEntity<List<Movie>> getFavoritesMoviesByUserId(@PathVariable int id, HttpServletRequest request){
-        jwtTokenUtils.comparePathIdAndTokenId(id, request);
+    public ResponseEntity<List<Movie>> getFavoritesMoviesByUserId(HttpServletRequest request){
+//        jwtTokenUtils.comparePathIdAndTokenId(id, request);
+        String jwt = request.getHeader("Authorization").substring(7);
+        int userId = jwtTokenUtils.getUserId(jwt);
 
-        return new ResponseEntity<>((List<Movie>) userService.getUserByUserId(id).getMovies() , HttpStatus.OK);
+        return new ResponseEntity<>((List<Movie>) userService.getUserByUserId(userId).getMovies() , HttpStatus.OK);
     }
-
 }

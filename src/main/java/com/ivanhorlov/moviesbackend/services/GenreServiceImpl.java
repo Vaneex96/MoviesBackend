@@ -49,6 +49,16 @@ public class GenreServiceImpl implements GenreService{
 
         return genreList;
     }
+
+    @Override
+    @Transactional
+    public List<Integer> getAllIdsGenres() {
+
+        Query query = entityManager.createQuery("SELECT id FROM Genre ");
+        List<Integer> genreList  = genreList = query.getResultList();
+
+        return genreList;
+    }
 }
 
 

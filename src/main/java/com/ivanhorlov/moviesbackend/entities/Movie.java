@@ -49,6 +49,9 @@ public class Movie {
     @Column(name="trailer")
     private String trailer;
 
+    @Column(name="vote_average")
+    private int voteAverage;
+
     @Column(name="vote_count")
     private int voteCount;
 
