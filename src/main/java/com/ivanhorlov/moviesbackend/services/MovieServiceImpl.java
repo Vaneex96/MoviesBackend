@@ -1,5 +1,4 @@
 package com.ivanhorlov.moviesbackend.services;
-
 import com.ivanhorlov.moviesbackend.dtos.MovieListResponse;
 import com.ivanhorlov.moviesbackend.dtos.RequestGenresListDto;
 import com.ivanhorlov.moviesbackend.entities.Genre;
@@ -15,9 +14,9 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-
-import java.util.*;
-import java.util.regex.Pattern;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -74,8 +73,6 @@ public class MovieServiceImpl implements MovieService {
     @Transactional
     public MovieListResponse getMoviesByTitle(String title, int pageNumber, int paginateBy, SortingTypes sortingType) {
 
-        System.out.println(title);
-
         List<Movie> movieList =  new ArrayList<>();
 
         while (movieList.size() == 0 && title.length() > 2){
@@ -83,21 +80,11 @@ public class MovieServiceImpl implements MovieService {
             if(movieList.size() == 0) title = title.substring(0, title.length() - 1);
         }
 
-//        System.out.println("title after: " + title);
-//        Query queryTotalPages = entityManager.createQuery("SELECT COUNT(*) FROM Movie movie WHERE movie.title LIKE :title ");
-//        queryTotalPages.setParameter("title", "'%" + title + "%'");
-//
-//        System.out.println("resultList: " + queryTotalPages.getResultList());
-//
-//        long totalPages = (long) queryTotalPages.getResultList().get(0);
-
         long totalPages = getMoviesByTitleQuery("'%" + title + "%'", 0, 0, null).size()/paginateBy;
 
         MovieListResponse response = new MovieListResponse();
         response.setMovie_list(movieList);
         response.setTotal_pages(totalPages);
-
-        System.out.println("totalPages " + totalPages);
 
         return response;
     }
@@ -105,8 +92,6 @@ public class MovieServiceImpl implements MovieService {
     @Override
     @Transactional
     public List<Movie> getMoviesByTitleQuery(String title, int pageNumber, int paginateBy, SortingTypes sortingType) {
-
-        System.out.println(sortingType);
 
         if(sortingType == null) sortingType = SortingTypes.popularity_desc;
         if(paginateBy == 0) paginateBy = 100;
@@ -133,7 +118,7 @@ public class MovieServiceImpl implements MovieService {
 
         String hqlTemplate;
         Query queryTotalPages;
-        long totalPages = 0;
+        long totalPages;
 
         if(genres.getGenresIds().size() == 0){
             hqlTemplate = String.format("SELECT movie FROM Movie movie " +

@@ -33,8 +33,9 @@ spring:
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/my_db?useSSL=false&amp
-    username: bestuser
+#    url: jdbc:mysql://localhost:3306/my_db?useSSL=false&amp
+    url: jdbc:mysql://localhost:3306/my_db?user=root
+    username: root
     password: bestuser
 
   mail:
@@ -56,7 +57,7 @@ spring:
       text: no-reply
   web:
     resources:
-      static-locations: file:\C:\Users\igorl\IdeaProjects\moviesbackend\users_avatars
+      static-locations: file:\D:\myProjectsCopy\media\movies
   mvc:
     static-path-pattern: /image/**
 

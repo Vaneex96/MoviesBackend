@@ -59,11 +59,11 @@ public class OtherController {
 
     }
 
-    @GetMapping("/photos/{filename:.+}")
+    @GetMapping("/movie/{filename:.+}")
     @ResponseBody
     public ResponseEntity<Resource> serveFile(@PathVariable String filename) {
 
-        Resource file = storageService.loadAsResource(filename);
+        Resource file = storageService.loadAsResource(filename + ".mp4");
 
         if (file == null)
             return ResponseEntity.notFound().build();

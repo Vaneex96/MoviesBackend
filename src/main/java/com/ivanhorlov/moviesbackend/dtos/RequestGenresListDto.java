@@ -14,4 +14,11 @@ public class RequestGenresListDto {
     private List<Integer> genresIds;
     private SortingTypes sortingType;
 
+    @Override
+    public String toString() {
+        return "RequestGenresListDto{" +
+                "genresIds=" + genresIds +
+                ", sortingType=" + sortingType +
+                '}';
+    }
 }

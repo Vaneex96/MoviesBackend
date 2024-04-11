@@ -1,13 +1,17 @@
 package com.ivanhorlov.moviesbackend.entities;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Collection;
 
 @Entity
 @Table(name="genres")
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class Genre {
 
     @Id

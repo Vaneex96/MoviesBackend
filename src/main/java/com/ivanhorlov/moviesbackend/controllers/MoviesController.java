@@ -25,28 +25,28 @@ public class MoviesController {
 
 
     @GetMapping("/movie/id/{id}")
-    public Movie getMovieById(@PathVariable int id){
-        return movieService.getMovieById(id);
+    public ResponseEntity<Movie> getMovieById(@PathVariable int id){
+        return new ResponseEntity<>(movieService.getMovieById(id), HttpStatus.OK);
     }
 
     @GetMapping("/movie/title/{title}")
-    public Movie getMovieByTitle(@PathVariable String title){
-        return movieService.getMovieByTitle(title);
+    public ResponseEntity<Movie> getMovieByTitle(@PathVariable String title){
+        return new ResponseEntity<>(movieService.getMovieByTitle(title), HttpStatus.OK);
     }
 
     @GetMapping("/ids/genrename/{genreName}/pagenumber/{pagenumber}")
-    public List<Integer> getMoviesIdsByGenreName(@PathVariable String genreName, @PathVariable int pagenumber){
-        return movieService.getMoviesIdsByGenre(genreName, pagenumber);
+    public ResponseEntity<List<Integer>> getMoviesIdsByGenreName(@PathVariable String genreName, @PathVariable int pagenumber){
+        return new ResponseEntity<>(movieService.getMoviesIdsByGenre(genreName, pagenumber), HttpStatus.OK);
     }
 
     @GetMapping("/ids/genreid/{id}/page/{page}")
-    public List<Integer> getMoviesIdsByGenreId(@PathVariable int id, @PathVariable int page){
-        return movieService.getMoviesIdsByGenre(id, page);
+    public ResponseEntity<List<Integer>> getMoviesIdsByGenreId(@PathVariable int id, @PathVariable int page){
+        return new ResponseEntity<>(movieService.getMoviesIdsByGenre(id, page), HttpStatus.OK);
     }
 
     @PostMapping("/by_genres_ids/page/{page}")
-    public MovieListResponse getMoviesByGenreId(@RequestBody RequestGenresListDto genres, @PathVariable int page){
-        return movieService.getMoviesByGenre(genres, page, genres.getSortingType(), 12);
+    public ResponseEntity<MovieListResponse> getMoviesByGenreId(@RequestBody RequestGenresListDto genres, @PathVariable int page){
+        return new ResponseEntity<>(movieService.getMoviesByGenre(genres, page, genres.getSortingType(), 12), HttpStatus.OK);
     }
 
     @GetMapping("/search_by_title/{title}/page/{page}/paginate_by/{paginateBy}/sort_by/{sort_by}")

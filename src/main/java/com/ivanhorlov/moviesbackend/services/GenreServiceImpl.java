@@ -45,8 +45,6 @@ public class GenreServiceImpl implements GenreService{
         Query query = entityManager.createQuery("SELECT id, name FROM Genre ");
         List<Genre> genreList  = genreList = query.getResultList();
 
-//        List<Genre> genreList  = (List<Genre>) genreRepository.findAll();
-
         return genreList;
     }
 
